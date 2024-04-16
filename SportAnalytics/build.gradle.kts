@@ -13,6 +13,8 @@ java {
 
 repositories {
 	mavenCentral()
+	google()
+
 }
 
 dependencies {
@@ -22,6 +24,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.22")
 
 	implementation("javax.validation:validation-api:2.0.1.Final")
+
+	implementation ("org.json:json:20210307")
 
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

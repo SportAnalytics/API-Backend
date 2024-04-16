@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SportanalyticsApplication<SportAnalytics>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.api.sportanalytics.SportanalyticsApplication",
+            "projectName": "SportAnalytics",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
