@@ -17,8 +17,9 @@ public class RutinaController {
 
     @PostMapping(consumes = "text/plain", produces = "application/json")
     public ResponseEntity<String> generateFromOpenAi(@RequestBody String inputText) {
+        Long atletaId = 1L;
         try {
-            String result = rutinaService.generateRutina(inputText);
+            String result = rutinaService.generateRutina(inputText, atletaId);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
