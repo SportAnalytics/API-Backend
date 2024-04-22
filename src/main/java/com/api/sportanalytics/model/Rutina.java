@@ -7,11 +7,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-
+import java.util.List;
 @Data
 @Setter
 @Getter
@@ -24,7 +25,9 @@ public class Rutina {
     @ManyToOne
     @JoinColumn(name = "atleta_id")
     private Atleta atleta;
-    //private Long atleta_id;
     private LocalDate fecha;
     private String estado; 
+
+    @OneToMany(mappedBy = "rutina")
+    private List<Rutina_Ejercicio> rutina_ejercicios;
 }

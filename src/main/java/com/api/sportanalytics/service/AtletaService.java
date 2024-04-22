@@ -50,4 +50,16 @@ public class AtletaService {
     public void eliminarAtleta(Long id) {
         atletaRepository.deleteById(id);
     }
+    
+    public String getObjetivoDistancia(Long atletaId) {
+        try {
+            Atleta atleta = atletaRepository.findById(atletaId).orElseThrow();
+            if (atleta.getCompetencia() == null || atleta.getCompetencia().isEmpty()) {
+                throw new Exception("El atleta no tiene un objetivo de distancia seleccionado");
+            }
+            return atleta.getCompetencia();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al obtener el objetivo de distancia del atleta: " + e.getMessage());
+        }
+    }
 }

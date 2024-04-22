@@ -20,13 +20,9 @@ public class Perfil {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @OneToOne
     @JoinColumn(name = "atleta_id")
     private Atleta atleta;
-
-
     private String correo;
-
     private String contraseña;
 }

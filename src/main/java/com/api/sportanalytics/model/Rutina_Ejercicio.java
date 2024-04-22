@@ -19,7 +19,6 @@ public class Rutina_Ejercicio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Integer cantidad_series;
     private String intensidad;
     private String descanso;

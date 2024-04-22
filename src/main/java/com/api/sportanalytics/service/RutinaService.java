@@ -1,10 +1,7 @@
 package com.api.sportanalytics.service;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Collections;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +17,8 @@ import com.api.sportanalytics.model.Rutina_Ejercicio;
 import com.api.sportanalytics.repository.EjercicioRepository;
 import com.api.sportanalytics.repository.RutinaEjercicioRepository;
 import com.api.sportanalytics.repository.RutinaRepository;
+import com.api.sportanalytics.shared.exception.ResourceNotFoundException;
+
 import org.json.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -59,13 +58,11 @@ public class RutinaService {
             String result = response.getBody();
             log.info("RUTINA:\n {}", result);
 
-            @SuppressWarnings("null")
             byte[] jsonBytes = result.getBytes(StandardCharsets.UTF_8);
             JSONObject obj = new JSONObject(new String(jsonBytes, StandardCharsets.UTF_8));
             String generatedText = obj.getJSONArray("generated_text").getString(0);
             JSONObject generatedTextObj = new JSONObject(generatedText);
             String objetivoDistancia = (String) inputJson.get("objetivoDistancia");
-            //String objetivoDistancia = generatedTextObj.getString("objetivoDistancia");
             
             JSONArray ejercicios = new JSONArray();
 
@@ -103,9 +100,13 @@ public class RutinaService {
             .put("ejercicios", ejercicios);
             
             JSONArray ejerciciosArray = finalObj.getJSONArray("ejercicios");
+            rutinaRepository.updateAllByAtletaId(atletaId, "completado");
+
+
             Rutina rutina = new Rutina();
-            Optional<Atleta> a = atletaService.obtenerAtletaPorId(atletaId);
-            rutina.setAtleta(a.get());
+            Optional<Atleta> atletaOptional = atletaService.obtenerAtletaPorId(atletaId);
+            Atleta atleta = atletaOptional.orElseThrow(() -> new RuntimeException("No se encontró el atleta con el ID proporcionado"));
+            rutina.setAtleta(atleta);
             rutina.setEstado("pendiente");
             rutina.setFecha(LocalDate.now());
             rutinaRepository.save(rutina);
@@ -113,36 +114,77 @@ public class RutinaService {
             for (int i = 0; i < ejerciciosArray.length(); i++) {
                 JSONObject ejercicioObj = ejerciciosArray.getJSONObject(i);
                 Ejercicio ejercicio = new Ejercicio();
-            
-                String nombre = ejercicioObj.isNull("nombre") ? null : ejercicioObj.getString("nombre");
+                
+                String nombre = ejercicioObj.isNull("nombre")? null : ejercicioObj.getString("nombre");
                 ejercicio.setNombre(nombre);
-            
-                String descripcion = ejercicioObj.isNull("descripcion") ? null : ejercicioObj.getString("descripcion");
+                
+                String descripcion = ejercicioObj.isNull("descripcion")? null : ejercicioObj.getString("descripcion");
                 ejercicio.setDescripcion(descripcion);
-            
-                String tipo = ejercicioObj.isNull("tipo") ? null : ejercicioObj.getString("tipo");
+                
+                String tipo = ejercicioObj.isNull("tipo")? null : ejercicioObj.getString("tipo");
                 ejercicio.setTipo(tipo);
-            
+                
                 ejercicioRepository.save(ejercicio);
-            
-                if (!ejercicioObj.isNull("descanso") && !ejercicioObj.isNull("intensidad") && !ejercicioObj.isNull("series")) {
-                    Rutina_Ejercicio rutinaEjercicio = new Rutina_Ejercicio();
-                    rutinaEjercicio.setEjercicio(ejercicio);
-                    rutinaEjercicio.setRutina(rutina);
-            
-                    String descanso = ejercicioObj.isNull("descanso") ? null : ejercicioObj.getString("descanso");
-                    int cantidadSeries = ejercicioObj.isNull("series") ? 0 : ejercicioObj.getInt("series");
-                    String intensidad = ejercicioObj.isNull("intensidad") ? null : ejercicioObj.getString("intensidad");
-            
-                    rutinaEjercicio.setDescanso(descanso);
-                    rutinaEjercicio.setCantidad_series(cantidadSeries);
-                    rutinaEjercicio.setIntensidad(intensidad);
-                    rutinaEjercicioRepository.save(rutinaEjercicio);
+                
+                Rutina_Ejercicio rutinaEjercicio = new Rutina_Ejercicio();
+                rutinaEjercicio.setEjercicio(ejercicio);
+                rutinaEjercicio.setRutina(rutina);
+                
+                if (!ejercicioObj.isNull("descanso")) {
+                    rutinaEjercicio.setDescanso(ejercicioObj.getString("descanso"));
+                } else {
+                    rutinaEjercicio.setDescanso(null);
                 }
+                
+                if (!ejercicioObj.isNull("intensidad")) {
+                    rutinaEjercicio.setIntensidad(ejercicioObj.getString("intensidad"));
+                } else {
+                    rutinaEjercicio.setIntensidad(null);
+                }
+                
+                if (!ejercicioObj.isNull("series")) {
+                    rutinaEjercicio.setCantidad_series(ejercicioObj.getInt("series"));
+                } else {
+                    rutinaEjercicio.setCantidad_series(0);
+                }
+                
+                rutinaEjercicioRepository.save(rutinaEjercicio);
             }
+            
             return finalObj.toString();
         } else {
             throw new RuntimeException(String.format("Error from LLM: %s", response.toString()));
+        }
+    }
+    public String getLastPendienteRutina(Long atletaId) {
+        Rutina rutina = rutinaRepository.findFirstByAtletaIdAndEstadoOrderByFechaDesc(atletaId, "pendiente");
+        if (rutina!= null) {
+            JSONObject rutinaJson = new JSONObject()
+               .put("id", rutina.getId())
+               .put("atleta", rutina.getAtleta().getNombre() + " " + rutina.getAtleta().getApellido())
+               .put("fecha", rutina.getFecha())
+               .put("estado", rutina.getEstado())
+               .put("objetivoDistancia", rutina.getAtleta().getCompetencia())
+               .put("ejercicios", new JSONArray());
+    
+            for (Rutina_Ejercicio rutinaEjercicio : rutina.getRutina_ejercicios()) {
+                JSONObject ejercicioJson = new JSONObject()
+                .put("id", rutinaEjercicio.getEjercicio().getId())
+                .put("nombre", rutinaEjercicio.getEjercicio().getNombre())
+                .put("tipo", rutinaEjercicio.getEjercicio().getTipo())
+                .put("descripcion", rutinaEjercicio.getEjercicio().getDescripcion())
+                .put("descanso", rutinaEjercicio.getDescanso())
+                .put("intensidad", rutinaEjercicio.getIntensidad());
+
+                if (rutinaEjercicio.getCantidad_series() > 0) {
+                    ejercicioJson.put("cantidad_series", rutinaEjercicio.getCantidad_series());
+                }
+                rutinaJson.getJSONArray("ejercicios").put(ejercicioJson);
+            }
+    
+            return rutinaJson.toString();
+        } else {
+            throw new ResourceNotFoundException("Rutina no encontrada");
         }
     }
 }
