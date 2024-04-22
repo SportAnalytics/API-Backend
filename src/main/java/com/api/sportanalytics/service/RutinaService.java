@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.Map;
 
 @Service
 public class RutinaService {
@@ -43,21 +44,17 @@ public class RutinaService {
 
 
     @Transactional
-    public String generateRutina(String inputText, Long atletaId) {
+    public String generateRutina(Map<String, Object> inputJson, Long atletaId) {
         String url = "https://smashing-kangaroo-electric.ngrok-free.app/model_inference";
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_PLAIN);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         
-        HttpEntity<String> entity = new HttpEntity<>(inputText, headers);
-        
-        ClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        ((SimpleClientHttpRequestFactory) requestFactory).setConnectTimeout(30000); // 30 seconds
-        ((SimpleClientHttpRequestFactory) requestFactory).setReadTimeout(30000); // 30 seconds
-
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(inputJson, headers);        
+        RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+  
+        
         if(response.getStatusCode() == HttpStatus.OK) {
             String result = response.getBody();
             log.info("RUTINA:\n {}", result);
@@ -67,8 +64,8 @@ public class RutinaService {
             JSONObject obj = new JSONObject(new String(jsonBytes, StandardCharsets.UTF_8));
             String generatedText = obj.getJSONArray("generated_text").getString(0);
             JSONObject generatedTextObj = new JSONObject(generatedText);
-            
-            String objetivoDistancia = generatedTextObj.getString("objetivoDistancia");
+            String objetivoDistancia = (String) inputJson.get("objetivoDistancia");
+            //String objetivoDistancia = generatedTextObj.getString("objetivoDistancia");
             
             JSONArray ejercicios = new JSONArray();
 
