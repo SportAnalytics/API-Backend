@@ -1,38 +1,36 @@
 package com.api.sportanalytics.model;
-
-import java.time.LocalDate;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 import java.math.BigDecimal;
 @Data
 @Setter
 @Getter
 @Entity
-@Table(name = "Rutina")
-public class Rutina {
+@Table(name = "Serie")
+public class Serie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "numero_serie")
+    private Integer numeroSerie;
+
     @ManyToOne
-    @JoinColumn(name = "atleta_id")
-    private Atleta atleta;
-    private LocalDate fecha;
-    private String estado;
+    @JoinColumn(name = "rutina_ejercicio_id")
+    private Rutina_Ejercicio rutinaEjercicio;
 
-    private BigDecimal temperatura_promedio;
-    private BigDecimal humedad_promedio;
-    private BigDecimal presion_promedio;
+    private BigDecimal tiempo;
 
-    @OneToMany(mappedBy = "rutina")
-    private List<Rutina_Ejercicio> rutina_ejercicios;
+    private BigDecimal velocidad;
+
+    private BigDecimal fre_cardiaca;
 }

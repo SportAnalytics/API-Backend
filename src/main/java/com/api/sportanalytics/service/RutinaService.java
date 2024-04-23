@@ -18,7 +18,7 @@ import com.api.sportanalytics.repository.EjercicioRepository;
 import com.api.sportanalytics.repository.RutinaEjercicioRepository;
 import com.api.sportanalytics.repository.RutinaRepository;
 import com.api.sportanalytics.shared.exception.ResourceNotFoundException;
-
+import com.api.sportanalytics.shared.exception.ResourceValidationException;
 import org.json.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -62,36 +62,51 @@ public class RutinaService {
             JSONObject obj = new JSONObject(new String(jsonBytes, StandardCharsets.UTF_8));
             String generatedText = obj.getJSONArray("generated_text").getString(0);
             JSONObject generatedTextObj = new JSONObject(generatedText);
-            String objetivoDistancia = (String) inputJson.get("objetivoDistancia");
-            
+
+            String objetivoDistancia = inputJson.containsKey("objetivoDistancia") ? (String) inputJson.get("objetivoDistancia") : null;
+
+            if (objetivoDistancia == null) {
+                throw new ResourceValidationException("El atleta debe proporcionar un objetivo de distancia.");
+            }
+
             JSONArray ejercicios = new JSONArray();
 
             ejercicios.put(new JSONObject()
             .put("nombre", "calentamiento")
-            .put("descripcion", generatedTextObj.getString("calentamiento"))
+            .put("descripcion", generatedTextObj.optString("calentamiento", null))
             .put("tipo", "calentamiento")
             );
         
-            for (int i = 0; i < generatedTextObj.getJSONArray("drills").length(); i++) {
-                ejercicios.put(new JSONObject()
-                .put("nombre", generatedTextObj.getJSONArray("drills").getJSONObject(i).getString("nombre"))
-                .put("descripcion", generatedTextObj.getJSONArray("drills").getJSONObject(i).getString("descripcion"))
-                .put("tipo", "drills")
-                );
+
+            JSONArray drillsArray = generatedTextObj.optJSONArray("drills");
+            if (drillsArray!= null) {
+                for (int i = 0; i < drillsArray.length(); i++) {
+                    JSONObject drill = drillsArray.getJSONObject(i);
+                    ejercicios.put(new JSONObject()
+                    .put("nombre", drill.optString("nombre", null))
+                    .put("descripcion", drill.optString("descripcion", null))
+                    .put("tipo", "drills")
+                    );
+                }
             }
-            for (int i = 0; i < generatedTextObj.getJSONArray("sprints").length(); i++) {
-                JSONObject sprint = generatedTextObj.getJSONArray("sprints").getJSONObject(i);
-                ejercicios.put(new JSONObject()
-                .put("nombre", sprint.getString("distancia"))
-                .put("series", sprint.getString("series"))
-                .put("intensidad", sprint.getString("intensidad"))
-                .put("descanso", sprint.getString("descanso"))
-                .put("tipo", "sprints")
-                );
+
+
+            JSONArray sprintsArray = generatedTextObj.optJSONArray("sprints");
+            if (sprintsArray!= null) {
+                for (int i = 0; i < sprintsArray.length(); i++) {
+                    JSONObject sprint = sprintsArray.getJSONObject(i);
+                    ejercicios.put(new JSONObject()
+                    .put("nombre", sprint.optString("distancia", null))
+                    .put("series", sprint.optString("series", null))
+                    .put("intensidad", sprint.optString("intensidad", null))
+                    .put("descanso", sprint.optString("descanso", null))
+                    .put("tipo", "sprints")
+                    );
+                }
             }
             ejercicios.put(new JSONObject()
             .put("nombre", "enfriamiento")
-            .put("descripcion", generatedTextObj.getString("enfriamiento"))
+            .put("descripcion", generatedTextObj.optString("enfriamiento", null))
             .put("tipo", "enfriamiento")
             );
    
@@ -102,10 +117,9 @@ public class RutinaService {
             JSONArray ejerciciosArray = finalObj.getJSONArray("ejercicios");
             rutinaRepository.updateAllByAtletaId(atletaId, "completado");
 
-
             Rutina rutina = new Rutina();
             Optional<Atleta> atletaOptional = atletaService.obtenerAtletaPorId(atletaId);
-            Atleta atleta = atletaOptional.orElseThrow(() -> new RuntimeException("No se encontró el atleta con el ID proporcionado"));
+            Atleta atleta = atletaOptional.orElseThrow(() -> new ResourceNotFoundException("No se encontró el atleta con el ID proporcionado"));
             rutina.setAtleta(atleta);
             rutina.setEstado("pendiente");
             rutina.setFecha(LocalDate.now());
@@ -149,11 +163,10 @@ public class RutinaService {
                 }
                 
                 rutinaEjercicioRepository.save(rutinaEjercicio);
-            }
-            
+            }   
             return finalObj.toString();
         } else {
-            throw new RuntimeException(String.format("Error from LLM: %s", response.toString()));
+            throw new ResourceValidationException(String.format("Error from LLM: %s", response.toString()));
         }
     }
     public String getLastPendienteRutina(Long atletaId) {
