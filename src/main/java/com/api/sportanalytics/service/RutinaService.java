@@ -3,6 +3,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -199,5 +200,29 @@ public class RutinaService {
         } else {
             throw new ResourceNotFoundException("Rutina no encontrada");
         }
+    }
+    public String getEjerciciosByAtletaAndNombre(Long atletaId, String nombre) {
+        List<Rutina_Ejercicio> ejercicios = rutinaEjercicioRepository.findByRutinaAtletaIdAndEjercicioNombre(atletaId, nombre);
+        if (ejercicios.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron ejercicios con el nombre '" + nombre + "'");
+        }
+    
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("ejercicios", new JSONArray());
+    
+        for (Rutina_Ejercicio ejercicio : ejercicios) {
+            JSONObject ejercicioJson = new JSONObject()
+                   .put("id", ejercicio.getEjercicio().getId())
+                   .put("nombre", ejercicio.getEjercicio().getNombre())
+                   .put("tipo", ejercicio.getEjercicio().getTipo())
+                   .put("descripcion", ejercicio.getEjercicio().getDescripcion())
+                   .put("descanso", ejercicio.getDescanso())
+                   .put("intensidad", ejercicio.getIntensidad())
+                   .put("cantidad_series", ejercicio.getCantidad_series());
+    
+            jsonObject.getJSONArray("ejercicios").put(ejercicioJson);
+        }
+    
+        return jsonObject.toString();
     }
 }

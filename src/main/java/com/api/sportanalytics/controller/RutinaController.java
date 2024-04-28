@@ -50,4 +50,13 @@ public class RutinaController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
+    @GetMapping("/atleta/{atletaId}/ejercicios/{nombre}")
+    public ResponseEntity<String> getEjerciciosByAtletaAndNombre(@PathVariable Long atletaId, @PathVariable String nombre) {
+        try {
+            String ejerciciosJson = rutinaService.getEjerciciosByAtletaAndNombre(atletaId, nombre);
+            return new ResponseEntity<>(ejerciciosJson, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
 }
