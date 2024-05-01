@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.api.sportanalytics.model.Rutina;
+
+import java.util.List;
+
 @Repository
 public interface RutinaRepository extends JpaRepository<Rutina, Long> {
     @Modifying
@@ -13,4 +16,7 @@ public interface RutinaRepository extends JpaRepository<Rutina, Long> {
     void updateAllByAtletaId(@Param("atletaId") Long atletaId, @Param("estado") String estado);
 
     Rutina findFirstByAtletaIdAndEstadoOrderByFechaDesc(@Param("atletaId") Long atletaId, @Param("estado") String estado);
+
+    List<Rutina> findRutinaByAtletaIdOrderByIdDesc(Long atletaId);
+
 }

@@ -1,17 +1,18 @@
 package com.api.sportanalytics.controller;
 
+import com.api.sportanalytics.model.Rutina;
+import com.api.sportanalytics.model.Rutina_Ejercicio;
+import com.api.sportanalytics.request.UpdateRutinaRequest;
 import com.api.sportanalytics.service.AtletaService;
 import com.api.sportanalytics.service.RutinaService;
+
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.LinkedHashMap;
 @RestController
 @RequestMapping("/api/rutinas")
@@ -22,6 +23,8 @@ public class RutinaController {
 
     @Autowired
     private AtletaService atletaService;
+
+
 
     @PostMapping(value = "/{atletaId}", consumes = "application/json", produces = "application/json")
     public ResponseEntity<String> generateFromOpenAi(@PathVariable Long atletaId, @RequestBody Map<String, Object> inputJson) {
@@ -51,12 +54,37 @@ public class RutinaController {
         }
     }
     @GetMapping("/atleta/{atletaId}/ejercicios/{nombre}")
-    public ResponseEntity<String> getEjerciciosByAtletaAndNombre(@PathVariable Long atletaId, @PathVariable String nombre) {
-        try {
-            String ejerciciosJson = rutinaService.getEjerciciosByAtletaAndNombre(atletaId, nombre);
+    public  ResponseEntity<List<Rutina_Ejercicio>> getEjerciciosByAtletaAndNombre(@PathVariable Long atletaId, @PathVariable String nombre) {
+
+            List<Rutina_Ejercicio> ejerciciosJson = rutinaService.getEjerciciosByAtletaAndNombre(atletaId, nombre);
             return new ResponseEntity<>(ejerciciosJson, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+
+    }
+
+    @GetMapping("/{atletaId}")
+    public ResponseEntity<List<Rutina>> getRutinas(@PathVariable Long atletaId) {
+
+        List<Rutina> rutinas = rutinaService.getAllRutinesByUserId(atletaId);
+
+        return new ResponseEntity<>(rutinas, HttpStatus.OK);
+
+    }
+
+    @PutMapping
+    public ResponseEntity<Rutina> updateRutina(@RequestBody UpdateRutinaRequest request) {
+
+
+        return rutinaService.updateRUtina(request);
+
+
+    }
+
+    @GetMapping("ejercicios/{atletaId}")
+    public ResponseEntity<List<String>> getEjercicios(@PathVariable Long atletaId) {
+
+        List<String> rutinas = rutinaService.getAllEjercicios(atletaId);
+
+        return new ResponseEntity<>(rutinas, HttpStatus.OK);
+
     }
 }

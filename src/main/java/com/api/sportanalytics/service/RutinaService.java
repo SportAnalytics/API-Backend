@@ -1,20 +1,19 @@
 package com.api.sportanalytics.service;
+import com.api.sportanalytics.model.*;
+import com.api.sportanalytics.repository.SerieRepository;
+import com.api.sportanalytics.request.UpdateRutinaRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
-import com.api.sportanalytics.model.Atleta;
-import com.api.sportanalytics.model.Ejercicio;
-import com.api.sportanalytics.model.Rutina;
-import com.api.sportanalytics.model.Rutina_Ejercicio;
 import com.api.sportanalytics.repository.EjercicioRepository;
 import com.api.sportanalytics.repository.RutinaEjercicioRepository;
 import com.api.sportanalytics.repository.RutinaRepository;
@@ -25,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Map;
 
 @Service
 public class RutinaService {
@@ -35,6 +33,8 @@ public class RutinaService {
     @Autowired
     private RutinaEjercicioRepository rutinaEjercicioRepository;
 
+    @Autowired
+    private SerieRepository serieRepository;
     @Autowired
     private RutinaRepository rutinaRepository;
 
@@ -201,13 +201,15 @@ public class RutinaService {
             throw new ResourceNotFoundException("Rutina no encontrada");
         }
     }
-    public String getEjerciciosByAtletaAndNombre(Long atletaId, String nombre) {
+    public List<Rutina_Ejercicio> getEjerciciosByAtletaAndNombre(Long atletaId, String nombre) {
         List<Rutina_Ejercicio> ejercicios = rutinaEjercicioRepository.findByRutinaAtletaIdAndEjercicioNombre(atletaId, nombre);
         if (ejercicios.isEmpty()) {
             throw new ResourceNotFoundException("No se encontraron ejercicios con el nombre '" + nombre + "'");
         }
+
+        return ejercicios;
     
-        JSONObject jsonObject = new JSONObject();
+        /*JSONObject jsonObject = new JSONObject();
         jsonObject.put("ejercicios", new JSONArray());
     
         for (Rutina_Ejercicio ejercicio : ejercicios) {
@@ -221,8 +223,77 @@ public class RutinaService {
                    .put("cantidad_series", ejercicio.getCantidad_series());
     
             jsonObject.getJSONArray("ejercicios").put(ejercicioJson);
-        }
+        }*/
     
-        return jsonObject.toString();
+        //return jsonObject.toString();
     }
+
+    public List<Rutina> getAllRutinesByUserId( Long ateltaId) {
+        return rutinaRepository.findRutinaByAtletaIdOrderByIdDesc(ateltaId);
+    }
+
+    public ResponseEntity<Rutina> updateRUtina(UpdateRutinaRequest request) {
+
+        Optional<Rutina> empRUtina = rutinaRepository.findById(request.getId());
+        if (empRUtina.isEmpty()) {
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        Rutina rutinaFinal = empRUtina.get();
+        rutinaFinal.setHumedad_promedio(request.getHumedad());
+        rutinaFinal.setPresion_promedio(request.getPresion());
+        rutinaFinal.setTemperatura_promedio(request.getTemperatura());
+        rutinaFinal.setEstado("Completa");
+        rutinaFinal.setFecha_completada(LocalDate.now());
+
+
+        for (int i = 0; i< rutinaFinal.getRutina_ejercicios().size(); i++ ) {
+
+
+            if (rutinaFinal.getRutina_ejercicios().get(i).getCantidad_series() == 0) {
+                for (int j = 0; j< 1; j++ ) {
+                    Serie temp = Serie.builder()
+                            .velocidad(request.getVelocidad().get(i))
+                            .fre_cardiaca(request.getFrecuenciaCardiaca().get(i))
+                            .tiempo(request.getTiempo().get(i))
+                            .rutina_ejercicio(rutinaFinal.getRutina_ejercicios().get(i)).
+                            // .numero_serie("0").
+                                    build();
+                    serieRepository.save(temp);
+                    List<Serie> listTemp = new ArrayList<>();
+                    listTemp.add(temp);
+                    rutinaFinal.getRutina_ejercicios().get(i).setSeries(listTemp);
+
+                }
+            } else {
+                List<Serie> listTemp = new ArrayList<>();
+                for (int j = 0; j< rutinaFinal.getRutina_ejercicios().get(i).getCantidad_series(); j++ ) {
+                    Serie temp = Serie.builder()
+                            .velocidad(request.getVelocidad().get(i))
+                            .fre_cardiaca(request.getFrecuenciaCardiaca().get(i))
+                            .tiempo(request.getTiempo().get(i))
+                            .rutina_ejercicio(rutinaFinal.getRutina_ejercicios().get(i)).
+                            //.numero_serie("0").
+                                    build();
+                    serieRepository.save(temp);
+                    listTemp.add(temp);
+
+
+                }
+                rutinaFinal.getRutina_ejercicios().get(i).setSeries(listTemp);
+            }
+
+
+
+        }
+
+
+        rutinaRepository.save(rutinaFinal);
+        return ResponseEntity.status(HttpStatus.OK).body(rutinaFinal);
+    }
+
+    public List<String> getAllEjercicios( Long ateltaId) {
+        return rutinaEjercicioRepository.findDistinctExerciseNamesByAtletaId(ateltaId);
+    }
+
 }

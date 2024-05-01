@@ -1,6 +1,7 @@
 package com.api.sportanalytics.controller;
 
 
+import com.api.sportanalytics.response.LoginResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,18 +57,46 @@ public class AuthController {
     
     // Endpoint para el inicio de sesión (login)
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         // Buscar el perfil asociado al correo electrónico proporcionado en la solicitud
         Perfil perfil = perfilService.obtenerPerfilPorCorreo(loginRequest.getCorreo())
-            .orElseThrow(() -> new ResourceNotFoundException( String.format( "Correo: %s not found", loginRequest.getCorreo() )));
+                .orElseThrow(() -> new ResourceNotFoundException( String.format( "Correo: %s not found", loginRequest.getCorreo() )));
+
+        LoginResponse response = new LoginResponse();
 
         // Verificar si la contraseña proporcionada coincide con la contraseña almacenada en el perfil
         if (perfil.getContraseña().equals(loginRequest.getContraseña())) {
             // La contraseña es correcta, se puede iniciar sesión exitosamente
-            return ResponseEntity.ok("Inicio de sesión exitoso");
+            response.setId(perfil.getId());
+            response.setNombre(perfil.getAtleta().getNombre());
+            response.setResponse("Inicio de sesión exitoso");
+            return ResponseEntity.ok(response);
         } else {
             // La contraseña es incorrecta, se devuelve un mensaje de error
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
+            response.setResponse("Credenciales incorrectas");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
+
+    @PostMapping("/login/pin")
+    public ResponseEntity<LoginResponse> loginPin(@RequestBody LoginRequest loginRequest) {
+        // Buscar el perfil asociado al correo electrónico proporcionado en la solicitud
+        Perfil perfil = perfilService.obtenerPerfilPorId(loginRequest.getId())
+                .orElseThrow(() -> new ResourceNotFoundException( String.format( "Correo: %s not found", loginRequest.getCorreo() )));
+
+        LoginResponse response = new LoginResponse();
+
+        // Verificar si la contraseña proporcionada coincide con la contraseña almacenada en el perfil
+        if (perfil.getPin().equals(loginRequest.getPin())) {
+            // La contraseña es correcta, se puede iniciar sesión exitosamente
+            response.setId(perfil.getId());
+            response.setNombre(perfil.getAtleta().getNombre());
+            response.setResponse("Inicio de sesión exitoso");
+            return ResponseEntity.ok(response);
+        } else {
+            // La contraseña es incorrecta, se devuelve un mensaje de error
+            response.setResponse("Credenciales incorrectas");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 }

@@ -1,14 +1,9 @@
 package com.api.sportanalytics.model;
 
 import java.time.LocalDate;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,14 +20,21 @@ public class Rutina {
     private Long id;
     @ManyToOne
     @JoinColumn(name = "atleta_id")
+    @JsonIgnore
     private Atleta atleta;
     private LocalDate fecha;
+    private LocalDate fecha_completada;
     private String estado;
-
-    private BigDecimal temperatura_promedio;
-    private BigDecimal humedad_promedio;
-    private BigDecimal presion_promedio;
 
     @OneToMany(mappedBy = "rutina")
     private List<Rutina_Ejercicio> rutina_ejercicios;
+
+    private Float temperatura_promedio;
+
+    @Column(name = "humedad_promedio")
+    private Float humedad_promedio;
+
+    private Integer presion_promedio;
+
+
 }

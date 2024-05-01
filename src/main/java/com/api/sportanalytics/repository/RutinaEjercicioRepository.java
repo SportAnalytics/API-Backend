@@ -12,4 +12,13 @@ public interface RutinaEjercicioRepository extends JpaRepository<Rutina_Ejercici
             + "JOIN re.ejercicio e "
             + "WHERE re.rutina.atleta.id = :atletaId AND e.nombre = :nombre")
     List<Rutina_Ejercicio> findByRutinaAtletaIdAndEjercicioNombre(@Param("atletaId") Long atletaId, @Param("nombre") String nombre);
+
+    @Query("SELECT DISTINCT e.nombre FROM Rutina_Ejercicio re "
+            + "JOIN re.ejercicio e "
+            + "JOIN re.rutina r "
+            + "WHERE r.atleta.id = :atletaId "
+            + "AND e.tipo = 'sprints' ")
+    List<String> findDistinctExerciseNamesByAtletaId(@Param("atletaId") Long atletaId);
+
+
 }

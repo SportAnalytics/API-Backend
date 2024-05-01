@@ -2,16 +2,17 @@ package com.api.sportanalytics.request;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Data
 @Setter
 @Getter
-@Data
-public class LoginRequest {
+@NoArgsConstructor
+public class GenerateRutinaRequest {
 
-    private String correo;
-
-    private String contraseña;
+    private String inputs;
     private Long id;
-    private Integer pin;
+
 }
+

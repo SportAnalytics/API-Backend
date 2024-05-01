@@ -25,4 +25,6 @@ public class Perfil {
     private Atleta atleta;
     private String correo;
     private String contraseña;
+
+    private Integer pin;
 }
