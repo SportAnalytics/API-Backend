@@ -27,23 +27,28 @@ public class RutinaController {
 
 
     @PostMapping(value = "/{atletaId}", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<String> generateFromOpenAi(@PathVariable Long atletaId, @RequestBody Map<String, Object> inputJson) {
-        String objetivoDistancia = atletaService.getObjetivoDistancia(atletaId);
-
-        if (!inputJson.containsKey("objetivoDistancia")) {
+    public ResponseEntity<String> generateFromOpenAi(@PathVariable Long atletaId, @RequestBody Map<String, Object> body) {
+        Map<String, Object> inputJson = (Map<String, Object>) body.get("inputs");
+        if (!inputJson.containsKey("objetivoDistancia") || inputJson.get("objetivoDistancia") == null) {
+            String objetivoDistancia = atletaService.getObjetivoDistancia(atletaId);
             Map<String, Object> newInputJson = new LinkedHashMap<>();
             newInputJson.put("objetivoDistancia", objetivoDistancia);
             newInputJson.putAll(inputJson);
             inputJson = newInputJson;
         }
-        
+        Map<String, Object> completeJson = new LinkedHashMap<>();
+        completeJson.put("inputs", inputJson);
         try {
-            String result = rutinaService.generateRutina(inputJson, atletaId);
+            String result = rutinaService.generateRutina(completeJson, atletaId);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+    
     @GetMapping("/atleta/{atletaId}")
     public ResponseEntity<String> getLastPendienteRutina(@PathVariable Long atletaId) {
         try {

@@ -44,13 +44,20 @@ public class RutinaService {
 
 
     @Transactional
-    public String generateRutina(Map<String, Object> inputJson, Long atletaId) {
-        String url = "https://smashing-kangaroo-electric.ngrok-free.app/model_inference";
+    public String generateRutina(Map<String, Object> completeJson, Long atletaId) {
+        Map<String, Object> inputJson = (Map<String, Object>) completeJson.get("inputs");
+        String objetivoDistancia = (String) inputJson.get("objetivoDistancia");
+        if (objetivoDistancia == null) {
+            throw new ResourceValidationException("El atleta debe proporcionar un objetivo de distancia.");
+        }
+        // String url = "https://smashing-kangaroo-electric.ngrok-free.app/model_inference";
+        String url = "https://kjnafpjozk85a3gw.us-east-1.aws.endpoints.huggingface.cloud";
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(inputJson, headers);        
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(completeJson, headers);        
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
   
@@ -64,11 +71,6 @@ public class RutinaService {
             String generatedText = obj.getJSONArray("generated_text").getString(0);
             JSONObject generatedTextObj = new JSONObject(generatedText);
 
-            String objetivoDistancia = inputJson.containsKey("objetivoDistancia") ? (String) inputJson.get("objetivoDistancia") : null;
-
-            if (objetivoDistancia == null) {
-                throw new ResourceValidationException("El atleta debe proporcionar un objetivo de distancia.");
-            }
 
             JSONArray ejercicios = new JSONArray();
 
