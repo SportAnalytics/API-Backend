@@ -17,4 +17,6 @@ public class SignUpRequest {
     private String correo;
     
     private String contraseña;
+
+    private String objetivo;
 }

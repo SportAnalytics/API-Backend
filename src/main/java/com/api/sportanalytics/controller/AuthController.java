@@ -36,7 +36,7 @@ public class AuthController {
         nuevoAtleta.setApellido(signUpRequest.getApellido());
         nuevoAtleta.setDireccion(signUpRequest.getDireccion());
         nuevoAtleta.setTelefono(signUpRequest.getTelefono());
-        nuevoAtleta.setCompetencia("");
+        nuevoAtleta.setCompetencia(signUpRequest.getObjetivo());
 
         // Guardar el nuevo atleta en la base de datos
         Atleta atletaGuardado = atletaService.crearAtleta(nuevoAtleta);
@@ -46,6 +46,7 @@ public class AuthController {
         nuevoPerfil.setAtleta(atletaGuardado);
         nuevoPerfil.setCorreo(signUpRequest.getCorreo());
         nuevoPerfil.setContraseña(signUpRequest.getContraseña());
+        nuevoPerfil.setPin(1234);
 
         // Guardar el nuevo perfil en la base de datos
         perfilService.crearPerfil(nuevoPerfil);
