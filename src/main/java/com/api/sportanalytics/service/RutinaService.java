@@ -50,8 +50,8 @@ public class RutinaService {
         if (objetivoDistancia == null) {
             throw new ResourceValidationException("El atleta debe proporcionar un objetivo de distancia.");
         }
-         String url = "https://smashing-kangaroo-electric.ngrok-free.app/model_inference";
-      // String url = "https://kjnafpjozk85a3gw.us-east-1.aws.endpoints.huggingface.cloud";
+       //  String url = "https://smashing-kangaroo-electric.ngrok-free.app/model_inference";
+       String url = "https://kjnafpjozk85a3gw.us-east-1.aws.endpoints.huggingface.cloud";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
