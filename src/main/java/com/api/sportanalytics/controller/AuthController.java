@@ -70,6 +70,7 @@ public class AuthController {
             // La contraseña es correcta, se puede iniciar sesión exitosamente
             response.setId(perfil.getId());
             response.setNombre(perfil.getAtleta().getNombre());
+            response.setCompetencia(perfil.getAtleta().getCompetencia());
             response.setResponse("Inicio de sesión exitoso");
             return ResponseEntity.ok(response);
         } else {

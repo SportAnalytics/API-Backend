@@ -8,4 +8,5 @@ public class LoginResponse {
     private String response;
     private Long id;
     private String nombre;
+    private String competencia;
 }
