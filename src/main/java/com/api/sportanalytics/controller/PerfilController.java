@@ -1,5 +1,6 @@
 package com.api.sportanalytics.controller;
 import com.api.sportanalytics.model.Perfil;
+import com.api.sportanalytics.request.LoginRequest;
 import com.api.sportanalytics.service.PerfilService;
 import com.api.sportanalytics.shared.exception.ResourceNotFoundException;
 
@@ -7,13 +8,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -54,5 +49,14 @@ public class PerfilController {
         perfilService.eliminarPerfil(id);
         String mensaje = String.format("El perfil con id %d fue eliminado", id);
         return ResponseEntity.ok(mensaje);
+    }
+
+    @PostMapping("/changePassword")
+    public ResponseEntity<Perfil> chambiarContrasena(@RequestBody LoginRequest request) {
+        Perfil perfil = perfilService.obtenerPerfilPorCorreo(request.getCorreo())
+                .orElseThrow(() -> new ResourceNotFoundException( String.format( "Correo: %s not found", request.getCorreo() )));
+
+
+        return perfilService.cambioContrasena(perfil, request.getContraseña());
     }
 }

@@ -3,6 +3,8 @@ package com.api.sportanalytics.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.api.sportanalytics.model.Perfil;
 import com.api.sportanalytics.repository.PerfilRepository;
@@ -49,6 +51,17 @@ public class PerfilService {
         perfilExistente.setContraseña(perfilActualizar.getContraseña());
 
         return perfilRepository.save(perfilExistente);
+    }
+
+    public ResponseEntity<Perfil> cambioContrasena(Perfil perfilActualizar, String newContrasena) {
+
+
+
+        perfilActualizar.setContraseña(newContrasena);
+
+        perfilRepository.save(perfilActualizar);
+        return ResponseEntity.status(HttpStatus.OK).body(perfilActualizar);
+
     }
 
     // Eliminar un perfil por su ID
