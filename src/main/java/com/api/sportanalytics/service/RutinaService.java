@@ -236,6 +236,8 @@ public class RutinaService {
 
     public ResponseEntity<Rutina> updateRUtina(UpdateRutinaRequest request) {
 
+        int contadorSeries = 0;
+
         Optional<Rutina> empRUtina = rutinaRepository.findById(request.getId());
         if (empRUtina.isEmpty()) {
 
@@ -257,7 +259,7 @@ public class RutinaService {
                     Serie temp = Serie.builder()
                             .velocidad(request.getVelocidad().get(i))
                             .fre_cardiaca(request.getFrecuenciaCardiaca().get(i))
-                            .tiempo(request.getTiempo().get(i))
+                            .tiempo(request.getTiempo().get(i + contadorSeries))
                             .rutina_ejercicio(rutinaFinal.getRutina_ejercicios().get(i)).
                             // .numero_serie("0").
                                     build();
@@ -273,15 +275,17 @@ public class RutinaService {
                     Serie temp = Serie.builder()
                             .velocidad(request.getVelocidad().get(i))
                             .fre_cardiaca(request.getFrecuenciaCardiaca().get(i))
-                            .tiempo(request.getTiempo().get(i))
+                            .tiempo(request.getTiempo().get(i + j + contadorSeries))
                             .rutina_ejercicio(rutinaFinal.getRutina_ejercicios().get(i)).
                             //.numero_serie("0").
                                     build();
+
                     serieRepository.save(temp);
                     listTemp.add(temp);
 
 
                 }
+                contadorSeries = contadorSeries + rutinaFinal.getRutina_ejercicios().get(i).getCantidad_series()-1;
                 rutinaFinal.getRutina_ejercicios().get(i).setSeries(listTemp);
             }
 
